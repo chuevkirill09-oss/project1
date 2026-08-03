@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Лесосклад — калькулятор объёма</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --paper:#efe7d8;
+    --paper-dark:#e4d9c2;
+    --ink:#2b231a;
+    --ink-soft:#5c5344;
+    --timber:#8b4a2b;
+    --timber-dark:#6e3a20;
+    --sap:#5c6b47;
+    --brass:#b08d57;
+    --mist:#c9c0ac;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(139,74,43,0.025) 0px, rgba(139,74,43,0.025) 1px, transparent 1px, transparent 26px);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:0 0 60px;
+  }
+  header{
+    padding:36px 20px 24px;
+    max-width:900px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.18em;
+    color:var(--timber);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:repeating-linear-gradient(90deg, var(--brass) 0 6px, transparent 6px 12px);
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:clamp(32px,6vw,52px);
+    letter-spacing:0.01em;
+    text-transform:uppercase;
+    margin:10px 0 6px;
+    line-height:1;
+  }
+  .sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    max-width:520px;
+  }
+  main{
+    max-width:900px;
+    margin:0 auto;
+    padding:0 20px;
+  }
+  .card{
+    background:var(--paper-dark);
+    border:1px solid var(--mist);
+    border-radius:2px;
+    padding:22px;
+    margin-bottom:22px;
+    position:relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    left:0; right:0; top:0;
+    height:4px;
+    background:repeating-linear-gradient(90deg, var(--timber) 0 14px, var(--brass) 14px 28px);
+  }
+  .field-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:6px;
+  }
+  .row-form{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr 1fr auto;
+    gap:14px;
+    align-items:end;
+  }
+  max-width:640px{
+    .row-form{grid-template-columns:1fr 1fr;}
+  }
+  .dims{
+    display:flex;
+    gap:4px;
+    align-items:center;
+  }
+  input{
+    width:100%;
+    padding:10px 10px;
+    border:1px solid var(--mist);
+    background:#faf6ec;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    border-radius:2px;
+  }
+  input[name="name"]{font-family:'Inter',sans-serif;}
+  input:focus{outline:2px solid var(--timber); outline-offset:1px;}
+  .dims input{text-align:center; padding:10px 4px;}
+  .dims span{color:var(--brass); font-weight:600;}
+  button{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    font-size:13px;
+    border:none;
+    border-radius:2px;
+    padding:11px 18px;
+    cursor:pointer;
+    transition:transform .08s ease;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-add{background:var(--timber); color:#fff8ee;}
+  .btn-add:hover{background:var(--timber-dark);}
+  .btn-export{background:var(--sap); color:#fff8ee;}
+  .btn-export:disabled{background:var(--mist); cursor:not-allowed;}
+  .btn-del{
+    background:transparent;
+    color:var(--timber);
+    border:1px solid var(--timber);
+    padding:6px 10px;
+    font-size:16px;
+    line-height:1;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  thead th{
+    font-family:'IBM Plex Mono',monospace;
+    font-
+SheetJS Table Export
+cdnjs.cloudflare.com
+
+
+size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    text-align:left;
+    color:var(--ink-soft);
+    border-bottom:2px solid var(--timber);
+    padding:8px 10px;
+  }
+  tbody td{
+    padding:10px;
+    border-bottom:1px solid var(--mist);
+    font-family:'IBM Plex Mono',monospace;
+  }
+  tbody td:first-child{font-family:'Inter',sans-serif;}
+  tbody tr:nth-child(even){background:rgba(139,74,43,0.05);}
+  .num{text-align:right;}
+  .empty-row td{
+    font-family:'Inter',sans-serif;
+    color:var(--ink-soft);
+    font-style:italic;
+    text-align:center;
+    padding:30px 10px;
+  }
+  footer.summary{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    flex-wrap:wrap;
+    padding-top:18px;
+  }
+  .stamp{
+    width:108px;
+    height:108px;
+    border-radius:50%;
+    border:3px solid var(--sap);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    transform:rotate(-8deg);
+    color:var(--sap);
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    flex-shrink:0;
+  }
+  .stamp small{font-size:9px; letter-spacing:0.12em;}
+  .stamp .val{font-size:20px; font-weight:700; line-height:1.1;}
+  .stamp .unit{font-size:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Учёт пиломатериалов</div>
+  <h1>Лесосклад</h1>
+  <p class="sub">Внесите позиции по каждому сорту доски — толщину, ширину и длину в миллиметрах — и получите точный объём партии в кубометрах.</p>
+</header>
+
+<main>
+  <div class="card">
+    <div class="row-form">
+      <div>
+        <span class="field-label">Наименование / сорт</span>
+        <input type="text" name="name" id="f-name" placeholder="Палубная доска сорт В">
+      </div>
+      <div>
+        <span class="field-label">Размеры т/ш/д, мм</span>
+        <div class="dims">
+          <input type="number" id="f-t" placeholder="27" min="0">
+          <span>/</span>
+          <input type="number" id="f-w" placeholder="140" min="0">
+          <span>/</span>
+          <input type="number" id="f-l" placeholder="3000" min="0">
+        </div>
+      </div>
+      <div>
+        <span class="field-label">Кол-во шт</span>
+        <input type="number" id="f-qty" placeholder="100" min="1">
+      </div>
+      <div></div>
+      <button class="btn-add" onclick="addRow()">Добавить</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Наименование / сорт</th>
+          <th>Размеры т/ш/д</th>
+          <th class="num">Кол-во шт</th>
+          <th class="num">Объём м³</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr class="empty-row"><td colspan="5">Пока нет ни одной позиции — добавьте первую выше.</td></tr>
+      </tbody>
+    </table>
+
+    <footer class="summary">
+      <div class="stamp">
+        <small>Итого</small>
+        <span class="val" id="total-val">0.000</span>
+        <span class="unit">м³</span>
+      </div>
+      <button class="btn-export" id="export-btn" onclick="exportExcel()" disabled>Скачать таблицу (.xlsx)</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+let items = [];
+
+function addRow(){
+  const name = document.getElementById('f-name').value.trim();
+  const t = parseFloat(document.getElementById('f-t').value);
+  const w = parseFloat(document.getElementById('f-w').value);
+  const l = parseFloat(document.getElementById('f-l').value);
+  const qty = parseInt(document.getElementById('f-qty').value);
+
+  if(!name){ alert('Введите наименование / сорт.'); return; }
+  if(!(t>0) || !(w>0) || !(l>0)){ alert('Заполните все три размера (т/ш/д) положительными числами.'); return; }
+  if(!(qty>0)){ alert('Введите количество штук — целое число больше нуля.'); return; }
+
+  const volume = (t/1000) * (w/1000) * (l/1000) * qty;
+  items.push({name, sizeStr:`${t}/${w}/${l}`, qty, volume});
+
+  document.getElementById('f-name').value='';
+  document.getElementById('f-t').value='';
+  document.getElementById('f-w').value='';
+  document.g
+
+
+etElementById('f-l').value='';
+  document.getElementById('f-qty').value='';
+  document.getElementById('f-name').focus();
+
+  render();
+}
+
+function removeRow(i){
+  items.splice(i,1);
+  render();
+}
+
+function render(){
+  const tbody = document.getElementById('tbody');
+  if(items.length===0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Пока нет ни одной позиции — добавьте первую выше.</td></tr>';
+  } else {
+    tbody.innerHTML = items.map((it,i)=>`
+      <tr>
+        <td>${escapeHtml(it.name)}</td>
+        <td>${it.sizeStr}</td>
+        <td class="num">${it.qty}</td>
+        <td class="num">${it.volume.toFixed(3)}</td>
+        <td><button class="btn-del" onclick="removeRow(${i})" title="Удалить">×</button></td>
+      </tr>
+    `).join('');
+  }
+  const total = items.reduce((s,it)=>s+it.volume,0);
+  document.getElementById('total-val').textContent = total.toFixed(3);
+  document.getElementById('export-btn').disabled = items.length===0;
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'''}[c]));
+}
+
+function exportExcel(){
+  const total = items.reduce((s,it)=>s+it.volume,0);
+  const data = [
+    ["Наименование / сорт","Размеры т/ш/д","Количество шт","Объем м3"],
+    ...items.map(it=>[it.name, it.sizeStr, it.qty, Number(it.volume.toFixed(4))]),
+    ["Итого","","",Number(total.toFixed(4))]
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:28},{wch:16},{wch:14},{wch:12}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Пиломатериалы");
+  XLSX.writeFile(wb, "pilomaterialy.xlsx");
+}
+</script>
+</body>
+</html>
