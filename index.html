@@ -214,7 +214,7 @@ size:11px;
 
 <header>
   <div class="eyebrow">Учёт пиломатериалов</div>
-  <h1>Лесосклад</h1>
+  <h1>Склад Сиберра</h1>
   <p class="sub">Внесите позиции по каждому сорту доски — толщину, ширину и длину в миллиметрах — и получите точный объём партии в кубометрах.</p>
 </header>
 
@@ -275,6 +275,7 @@ size:11px;
 let items = [];
 
 function addRow(){
+  alert("Кнопка работает");
   const name = document.getElementById('f-name').value.trim();
   const t = parseFloat(document.getElementById('f-t').value);
   const w = parseFloat(document.getElementById('f-w').value);
